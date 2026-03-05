@@ -33,6 +33,15 @@ This is a new Java project. The .gitignore is configured for standard Java artif
 Format: `should<Action>With<Valid|Invalid>Parameters`
 
 Examples:
-- `shouldThrowExceptionWithNullParameters`
-- `shouldReturnWinnerWithValidParameters`
-- `shouldHandleTieWithIdenticalSymbols`
+- `shouldThrowExceptionWithInvalidParameters`
+- `shouldReturnWinWithValidParameters`
+- `shouldReturnDrawWithIdenticalMoves`
+
+### Test Framework
+- **JUnit 5 (Jupiter)** for test execution
+- **AssertJ 3.x** for fluent assertions
+- Parametrized tests using `@ParameterizedTest` with `@MethodSource`
+- **Use `@MethodSource` with `Arguments.of(ENUM1, ENUM2)` for enum parameters** - NOT `@CsvSource`
+- Static imports for better readability (Move.*, Result.*)
+- Group related test data in static methods (e.g., `winningMoves()`, `invalidMoves()`)
+- Use **fluent assertions** (AssertJ) instead of classic JUnit assertions

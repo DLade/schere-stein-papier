@@ -2,6 +2,11 @@
 
 A Java console implementation of the classic hand game.
 
+## Prerequisites
+
+- **Java 21** (or compatible JDK)
+- **Gradle** (included via Gradle Wrapper - no separate installation required)
+
 ## Description
 
 This program simulates 100 rounds of Rock, Paper, Scissors between two players:
@@ -28,3 +33,22 @@ The program runs as a simple Java console application without parameters and ter
 - Same symbol: Tie → replay
 
 ![Rock-Paper-Scissors](https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Rock-paper-scissors.svg/400px-Rock-paper-scissors.svg.png)
+
+## Getting Started
+
+### Build the project
+```bash
+./gradlew build
+```
+
+### Run tests
+```bash
+./gradlew test
+```
+
+### Run the application
+```bash
+./gradlew run
+```
+
+**Windows users:** Use `gradlew.bat` instead of `./gradlew`
