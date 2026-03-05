@@ -25,3 +25,14 @@ replay_pid*
 
 # IDE
 .idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.nbsetup/
+
+# Gradle
+.gradle/
+build/
