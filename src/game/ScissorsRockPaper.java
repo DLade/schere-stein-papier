@@ -1,58 +1,78 @@
 package game;
 
-import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 public class ScissorsRockPaper {
+
     public enum Move {
-        ROCK, PAPER, SCISSORS
+        ROCK, PAPER, SCISSORS;
+
+        public boolean beats(Move other) {
+            return (this == ROCK && other == SCISSORS) ||
+                   (this == PAPER && other == ROCK) ||
+                   (this == SCISSORS && other == PAPER);
+        }
     }
 
     public enum Result {
         WIN, LOSE, DRAW
     }
 
-    private static final Random random = ThreadLocalRandom.current();
-
-    private static final Map<Move, Move> winAgainstMap = Map.of(
-            Move.ROCK, Move.SCISSORS,
-            Move.PAPER, Move.ROCK,
-            Move.SCISSORS, Move.PAPER
-    );
-
-    public static Result evaluateMatch(Move move1, Move move2) {
-        if (move1 == null || move2 == null) {
-            throw new IllegalArgumentException("Moves must not be null");
+    public record ResultCount(int win, int lose, int draw) {
+        public int total() {
+            return win + lose + draw;
         }
-        if (move1 == move2) {
-            return Result.DRAW;
-        }
-        if (winAgainstMap.get(move1) == move2) {
-            return Result.WIN;
-        }
-        return Result.LOSE;
     }
 
-    private static Move randomMove() {
-        final Move[] moves = Move.values();
+    private final Supplier<Move> RANDOM_STRATEGY = () -> {
+        Move[] allMoves = Move.values();
+        return allMoves[ThreadLocalRandom.current().nextInt(allMoves.length)];
+    };
 
-        return moves[random.nextInt(moves.length)];
+    public Result determineResult(Move movePlayerA, Move movePlayerB) {
+        if (movePlayerA == null || movePlayerB == null) {
+            throw new IllegalArgumentException("Moves must not be null");
+        }
+        if (movePlayerA == movePlayerB) {
+            return Result.DRAW;
+        }
+        return movePlayerA.beats(movePlayerB) ? Result.WIN : Result.LOSE;
+    }
+
+    public ResultCount playMultipleRounds(Move movePlayerA, int numberOfRounds) {
+        if (movePlayerA == null) {
+            throw new IllegalArgumentException("Moves must not be null");
+        }
+        if (numberOfRounds < 1) {
+            throw new IllegalArgumentException("Times must be greater than 0");
+        }
+
+        int wins = 0;
+        int losses = 0;
+        int draws = 0;
+
+        for (int i = 0; i < numberOfRounds; i++) {
+            Move movePlayerB = RANDOM_STRATEGY.get();
+            Result result = determineResult(movePlayerA, movePlayerB);
+
+            switch (result) {
+                case WIN -> wins++;
+                case LOSE -> losses++;
+                case DRAW -> draws++;
+            }
+        }
+        return new ResultCount(wins, losses, draws);
     }
 
     public static void main(String[] args) {
-        Move movePlayerA = Move.PAPER;
+        ScissorsRockPaper game = new ScissorsRockPaper();
 
-        int[] resultCount = new int[Result.values().length];
-        for (int i = 0; i < 100; i++) {
-            Move movePlayerB = randomMove();
-            Result result = evaluateMatch(movePlayerA, movePlayerB);
+        ResultCount resultCount = game.playMultipleRounds(Move.PAPER, 100);
 
-            resultCount[result.ordinal()] += 1;
-        }
-
-        System.out.println("Player A wins " + resultCount[Result.WIN.ordinal()] + " times");
-        System.out.println("Player A loses " + resultCount[Result.LOSE.ordinal()] + " times");
-        System.out.println("Player A and B draw " + resultCount[Result.DRAW.ordinal()] + " times");
+        System.out.println("Rounds played: " + resultCount.total());
+        System.out.println("Player A wins: " + resultCount.win + " times");
+        System.out.println("Player B wins: " + resultCount.lose + " times");
+        System.out.println("Draws: " + resultCount.draw + " times");
     }
 }
