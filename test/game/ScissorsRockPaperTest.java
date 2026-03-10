@@ -2,11 +2,14 @@ package game;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
+import static game.ScissorsRockPaper.Move;
 import static game.ScissorsRockPaper.Move.PAPER;
 import static game.ScissorsRockPaper.Move.ROCK;
 import static game.ScissorsRockPaper.Move.SCISSORS;
@@ -51,38 +54,30 @@ class ScissorsRockPaperTest {
         );
     }
 
-    static Stream<Arguments> validMovesForSimulation() {
-        return Stream.of(
-                Arguments.of(ROCK),
-                Arguments.of(PAPER),
-                Arguments.of(SCISSORS)
-        );
-    }
-
     @ParameterizedTest
     @MethodSource("winningMoves")
-    void shouldReturnWinWithValidParameters(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
-        ScissorsRockPaper.Result result = game.determineResult(move1, move2);
+    void shouldReturnWinWithValidParameters(Move move1, Move move2) {
+        Result result = game.determineResult(move1, move2);
         assertThat(result).isEqualTo(Result.WIN);
     }
 
     @ParameterizedTest
     @MethodSource("losingMoves")
-    void shouldReturnLoseWithValidParameters(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
-        ScissorsRockPaper.Result result = game.determineResult(move1, move2);
+    void shouldReturnLoseWithValidParameters(Move move1, Move move2) {
+        Result result = game.determineResult(move1, move2);
         assertThat(result).isEqualTo(Result.LOSE);
     }
 
     @ParameterizedTest
     @MethodSource("drawMoves")
-    void shouldReturnDrawWithIdenticalMoves(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
-        ScissorsRockPaper.Result result = game.determineResult(move1, move2);
+    void shouldReturnDrawWithIdenticalMoves(Move move1, Move move2) {
+        Result result = game.determineResult(move1, move2);
         assertThat(result).isEqualTo(Result.DRAW);
     }
 
     @ParameterizedTest
     @MethodSource("invalidMoves")
-    void shouldThrowExceptionWithInvalidParameters(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
+    void shouldThrowExceptionWithInvalidParameters(Move move1, Move move2) {
         assertThatThrownBy(
                 () -> game.determineResult(move1, move2))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -90,8 +85,8 @@ class ScissorsRockPaperTest {
     }
 
     @ParameterizedTest
-    @MethodSource("validMovesForSimulation")
-    void shouldReturnCorrectTotalCountWithValidParameters(ScissorsRockPaper.Move move) {
+    @EnumSource(Move.class)
+    void shouldReturnCorrectTotalCountWithValidParameters(Move move) {
         int times = 100;
         ScissorsRockPaper.ResultCount results = game.playMultipleRounds(move, times);
         assertThat(results.total()).isEqualTo(times);
@@ -99,10 +94,19 @@ class ScissorsRockPaperTest {
 
     @ParameterizedTest
     @NullSource
-    void shouldThrowExceptionWithInvalidMoveParameter(ScissorsRockPaper.Move move) {
+    void shouldThrowExceptionWithInvalidParameters(Move move) {
         assertThatThrownBy(
                 () -> game.playMultipleRounds(move, 100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Moves must not be null");
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1, Integer.MIN_VALUE})
+    void shouldThrowExceptionWithInvalidParameters(int numberOfRounds) {
+        assertThatThrownBy(
+                () -> game.playMultipleRounds(PAPER, numberOfRounds))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Times must be greater than 0");
     }
 }

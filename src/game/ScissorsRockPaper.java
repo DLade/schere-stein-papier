@@ -6,13 +6,24 @@ import java.util.function.Supplier;
 public class ScissorsRockPaper {
 
     public enum Move {
-        ROCK, PAPER, SCISSORS;
+        ROCK {
+            @Override
+            boolean beats(Move other) {
+                return other == SCISSORS;
+            }
+        }, PAPER {
+            @Override
+            boolean beats(Move other) {
+                return other == ROCK;
+            }
+        }, SCISSORS {
+            @Override
+            boolean beats(Move other) {
+                return other == PAPER;
+            }
+        };
 
-        public boolean beats(Move other) {
-            return (this == ROCK && other == SCISSORS) ||
-                   (this == PAPER && other == ROCK) ||
-                   (this == SCISSORS && other == PAPER);
-        }
+        abstract boolean beats(Move other);
     }
 
     public enum Result {
@@ -26,7 +37,7 @@ public class ScissorsRockPaper {
     }
 
     private final Supplier<Move> RANDOM_STRATEGY = () -> {
-        Move[] allMoves = Move.values();
+        var allMoves = Move.values();
         return allMoves[ThreadLocalRandom.current().nextInt(allMoves.length)];
     };
 
@@ -53,8 +64,8 @@ public class ScissorsRockPaper {
         int draws = 0;
 
         for (int i = 0; i < numberOfRounds; i++) {
-            Move movePlayerB = RANDOM_STRATEGY.get();
-            Result result = determineResult(movePlayerA, movePlayerB);
+            var movePlayerB = RANDOM_STRATEGY.get();
+            var result = determineResult(movePlayerA, movePlayerB);
 
             switch (result) {
                 case WIN -> wins++;
@@ -66,9 +77,9 @@ public class ScissorsRockPaper {
     }
 
     public static void main(String[] args) {
-        ScissorsRockPaper game = new ScissorsRockPaper();
+        var game = new ScissorsRockPaper();
 
-        ResultCount resultCount = game.playMultipleRounds(Move.PAPER, 100);
+        var resultCount = game.playMultipleRounds(Move.PAPER, 100);
 
         System.out.println("Rounds played: " + resultCount.total());
         System.out.println("Player A wins: " + resultCount.win + " times");
