@@ -1,10 +1,15 @@
 package game;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static game.ScissorsRockPaper.Move.PAPER;
@@ -104,5 +109,37 @@ class ScissorsRockPaperTest {
                 () -> game.playMultipleRounds(move, 100))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Moves must not be null");
+    }
+
+    @Test
+    void shouldSelectBestMoveForPlayerAWithMovePlayerB() {
+        List<ScissorsRockPaper.Move> playerBMoves = List.of(PAPER, PAPER, PAPER, ROCK, ROCK, SCISSORS);
+
+        var smartPlayerA = new SmartPlayer(playerBMoves);
+
+        ScissorsRockPaper.Move nextMove = smartPlayerA.nextMove();
+
+        assertThat(nextMove).isEqualTo(SCISSORS);
+
+
+        // Spieler A nimmt Schere, weil Papier am meisten gewählt wurde
+
+    }
+
+    private class SmartPlayer {
+        private final List<ScissorsRockPaper.Move> playerBMoves;
+
+        public SmartPlayer(List<ScissorsRockPaper.Move> playerBMoves) {
+            this.playerBMoves = playerBMoves;
+        }
+
+        public ScissorsRockPaper.Move nextMove() {
+            Map<ScissorsRockPaper.Move, AtomicInteger> moves = new HashMap<>();
+            for (ScissorsRockPaper.Move move : playerBMoves) {
+                AtomicInteger a = moves.putIfAbsent(move, new AtomicInteger(0));
+                a.incrementAndGet();
+            }
+            return PAPER;
+        }
     }
 }
