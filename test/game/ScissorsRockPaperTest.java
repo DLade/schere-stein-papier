@@ -1,20 +1,24 @@
 package game;
 
+import game.players.PaperPlayer;
+import game.players.Player;
+import game.players.RandomPlayer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
-import static game.ScissorsRockPaper.Move;
-import static game.ScissorsRockPaper.Move.PAPER;
-import static game.ScissorsRockPaper.Move.ROCK;
-import static game.ScissorsRockPaper.Move.SCISSORS;
-import static game.ScissorsRockPaper.Result;
-import static game.ScissorsRockPaper.Result.DRAW;
-import static game.ScissorsRockPaper.Result.LOSE;
-import static game.ScissorsRockPaper.Result.WIN;
+import static game.HandSign.PAPER;
+import static game.HandSign.ROCK;
+import static game.HandSign.SCISSORS;
+import static game.MatchResult.DRAW;
+import static game.MatchResult.LOSE;
+import static game.MatchResult.WIN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
@@ -38,8 +42,8 @@ class ScissorsRockPaperTest {
 
     @ParameterizedTest
     @MethodSource("validCombinations")
-    void shouldReturnCorrectResultWithValidParameters(Move move1, Move move2, Result expectedResult) {
-        Result result = move1.beats(move2);
+    void shouldReturnCorrectResultWithValidParameters(HandSign move1, HandSign move2, MatchResult expectedResult) {
+        MatchResult result = move1.beats(move2);
 
         assertThat(result).isEqualTo(expectedResult);
     }
@@ -47,25 +51,25 @@ class ScissorsRockPaperTest {
     @Test
     void shouldThrowExceptionWithNullPlayers() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> game.playMultipleRounds(null, new ScissorsRockPaper.PaperPlayer(), 10))
+                .isThrownBy(() -> game.playMultipleRounds(null, new PaperPlayer(), 10))
                 .withMessage("Player A or Player B cannot be null");
 
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> game.playMultipleRounds(new ScissorsRockPaper.PaperPlayer(), null, 10))
+                .isThrownBy(() -> game.playMultipleRounds(new PaperPlayer(), null, 10))
                 .withMessage("Player A or Player B cannot be null");
     }
 
     @Test
     void shouldThrowExceptionWithInvalidRounds() {
         assertThatIllegalArgumentException()
-                .isThrownBy(() -> game.playMultipleRounds(new ScissorsRockPaper.PaperPlayer(), new ScissorsRockPaper.PaperPlayer(), 0))
+                .isThrownBy(() -> game.playMultipleRounds(new PaperPlayer(), new PaperPlayer(), 0))
                 .withMessage("Times must be greater than 0");
     }
 
     @Test
     void shouldReturnCorrectResultCountWithValidParameters() {
-        ScissorsRockPaper.Player playerA = new ScissorsRockPaper.PaperPlayer();
-        ScissorsRockPaper.Player playerB = new ScissorsRockPaper.PaperPlayer();
+        Player playerA = new PaperPlayer();
+        Player playerB = new PaperPlayer();
 
         ScissorsRockPaper.ResultCount resultCount = game.playMultipleRounds(playerA, playerB, 100);
 
@@ -77,7 +81,7 @@ class ScissorsRockPaperTest {
 
     @Test
     void shouldReturnPaperWithValidParameters() {
-        ScissorsRockPaper.PaperPlayer player = new ScissorsRockPaper.PaperPlayer();
+        PaperPlayer player = new PaperPlayer();
         assertThat(player.nextMove()).isEqualTo(PAPER);
     }
 
@@ -85,5 +89,15 @@ class ScissorsRockPaperTest {
     void shouldReturnCorrectTotalWithValidParameters() {
         ScissorsRockPaper.ResultCount resultCount = new ScissorsRockPaper.ResultCount(1, 2, 3);
         assertThat(resultCount.total()).isEqualTo(6);
+    }
+
+    @Test
+    void shouldReturnVariousMovesWithValidParameters() {
+        RandomPlayer player = new RandomPlayer();
+        Set<HandSign> moves = new HashSet<>();
+        for (int i = 0; i < 100; i++) {
+            moves.add(player.nextMove());
+        }
+        assertThat(moves).containsAll(Arrays.asList(HandSign.values()));
     }
 }
