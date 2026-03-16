@@ -1,10 +1,15 @@
 package game;
 
-import game.players.PaperPlayer;
 import game.players.Player;
 import game.players.RandomPlayer;
+import game.players.SmartPlayer;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 public class ScissorsRockPaper {
+
+    private static final Map<HandSign, Integer> recordsPlayerB = new EnumMap<>(HandSign.class);
 
     record ResultCount(int win, int lose, int draw) {
         public int total() {
@@ -34,6 +39,8 @@ public class ScissorsRockPaper {
                 case LOSE -> losses++;
                 case DRAW -> draws++;
             }
+
+            recordsPlayerB.merge(movePlayerB, 1, Integer::sum);
         }
         return new ResultCount(wins, losses, draws);
     }
@@ -41,7 +48,7 @@ public class ScissorsRockPaper {
     public static void main(String[] args) {
         ScissorsRockPaper game = new ScissorsRockPaper();
 
-        Player playerA = new PaperPlayer();
+        Player playerA = new SmartPlayer(recordsPlayerB);
         Player playerB = new RandomPlayer();
         ResultCount resultCount = game.playMultipleRounds(playerA, playerB, 100);
 

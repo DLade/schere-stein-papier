@@ -3,6 +3,7 @@ package game;
 import game.players.PaperPlayer;
 import game.players.Player;
 import game.players.RandomPlayer;
+import game.players.SmartPlayer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -10,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -99,5 +101,13 @@ class ScissorsRockPaperTest {
             moves.add(player.nextMove());
         }
         assertThat(moves).containsAll(Arrays.asList(HandSign.values()));
+    }
+
+    @Test
+    void shouldSelectMostFrequentHandSign() {
+        Map<HandSign, Integer> recordsPlayer = Map.of(ROCK, 1, PAPER, 3, SCISSORS, 0);
+
+        Player player = new SmartPlayer(recordsPlayer);
+        assertThat(player.nextMove()).isEqualTo(PAPER);
     }
 }
