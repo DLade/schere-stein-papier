@@ -5,21 +5,41 @@ import java.util.function.Supplier;
 
 public class ScissorsRockPaper {
 
-    public enum Move {
-        ROCK, PAPER, SCISSORS;
-
-        public boolean beats(Move other) {
-            return (this == ROCK && other == SCISSORS) ||
-                   (this == PAPER && other == ROCK) ||
-                   (this == SCISSORS && other == PAPER);
-        }
-    }
-
-    public enum Result {
+    enum Result {
         WIN, LOSE, DRAW
     }
 
-    public record ResultCount(int win, int lose, int draw) {
+    enum Move {
+        ROCK {
+            @Override
+            Result beats(Move other) {
+                if (this == other) {
+                    return Result.DRAW;
+                }
+                return other == SCISSORS ? Result.WIN : Result.LOSE;
+            }
+        }, PAPER {
+            @Override
+            Result beats(Move other) {
+                if (this == other) {
+                    return Result.DRAW;
+                }
+                return other == ROCK ? Result.WIN : Result.LOSE;
+            }
+        }, SCISSORS {
+            @Override
+            Result beats(Move other) {
+                if (this == other) {
+                    return Result.DRAW;
+                }
+                return other == PAPER ? Result.WIN : Result.LOSE;
+            }
+        };
+
+        abstract Result beats(Move other);
+    }
+
+    record ResultCount(int win, int lose, int draw) {
         public int total() {
             return win + lose + draw;
         }
@@ -30,17 +50,7 @@ public class ScissorsRockPaper {
         return allMoves[ThreadLocalRandom.current().nextInt(allMoves.length)];
     };
 
-    public Result determineResult(Move movePlayerA, Move movePlayerB) {
-        if (movePlayerA == null || movePlayerB == null) {
-            throw new IllegalArgumentException("Moves must not be null");
-        }
-        if (movePlayerA == movePlayerB) {
-            return Result.DRAW;
-        }
-        return movePlayerA.beats(movePlayerB) ? Result.WIN : Result.LOSE;
-    }
-
-    public ResultCount playMultipleRounds(Move movePlayerA, int numberOfRounds) {
+    ResultCount playMultipleRounds(Move movePlayerA, int numberOfRounds) {
         if (movePlayerA == null) {
             throw new IllegalArgumentException("Moves must not be null");
         }
@@ -54,7 +64,7 @@ public class ScissorsRockPaper {
 
         for (int i = 0; i < numberOfRounds; i++) {
             Move movePlayerB = RANDOM_STRATEGY.get();
-            Result result = determineResult(movePlayerA, movePlayerB);
+            Result result = movePlayerA.beats(movePlayerB);
 
             switch (result) {
                 case WIN -> wins++;
