@@ -1,7 +1,6 @@
 package game;
 
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Supplier;
 
 public class ScissorsRockPaper {
 
@@ -45,14 +44,28 @@ public class ScissorsRockPaper {
         }
     }
 
-    private final Supplier<Move> RANDOM_STRATEGY = () -> {
-        Move[] allMoves = Move.values();
-        return allMoves[ThreadLocalRandom.current().nextInt(allMoves.length)];
-    };
+    interface Player {
+        Move nextMove();
+    }
 
-    ResultCount playMultipleRounds(Move movePlayerA, int numberOfRounds) {
-        if (movePlayerA == null) {
-            throw new IllegalArgumentException("Moves must not be null");
+    static class PaperPlayer implements Player {
+        @Override
+        public Move nextMove() {
+            return Move.PAPER;
+        }
+    }
+
+    static class RandomPlayer implements Player {
+        @Override
+        public Move nextMove() {
+            Move[] allMoves = Move.values();
+            return allMoves[ThreadLocalRandom.current().nextInt(allMoves.length)];
+        }
+    }
+
+    ResultCount playMultipleRounds(Player playerA, Player playerB, int numberOfRounds) {
+        if (playerA == null || playerB == null) {
+            throw new IllegalArgumentException("Player A or Player B cannot be null");
         }
         if (numberOfRounds < 1) {
             throw new IllegalArgumentException("Times must be greater than 0");
@@ -63,7 +76,8 @@ public class ScissorsRockPaper {
         int draws = 0;
 
         for (int i = 0; i < numberOfRounds; i++) {
-            Move movePlayerB = RANDOM_STRATEGY.get();
+            Move movePlayerA = playerA.nextMove();
+            Move movePlayerB = playerB.nextMove();
             Result result = movePlayerA.beats(movePlayerB);
 
             switch (result) {
@@ -78,7 +92,9 @@ public class ScissorsRockPaper {
     public static void main(String[] args) {
         ScissorsRockPaper game = new ScissorsRockPaper();
 
-        ResultCount resultCount = game.playMultipleRounds(Move.PAPER, 100);
+        Player playerA = new PaperPlayer();
+        Player playerB = new RandomPlayer();
+        ResultCount resultCount = game.playMultipleRounds(playerA, playerB, 100);
 
         System.out.println("Rounds played: " + resultCount.total());
         System.out.println("Player A wins: " + resultCount.win + " times");

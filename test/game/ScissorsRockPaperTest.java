@@ -4,125 +4,86 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static game.ScissorsRockPaper.Move;
 import static game.ScissorsRockPaper.Move.PAPER;
 import static game.ScissorsRockPaper.Move.ROCK;
 import static game.ScissorsRockPaper.Move.SCISSORS;
 import static game.ScissorsRockPaper.Result;
-
+import static game.ScissorsRockPaper.Result.DRAW;
+import static game.ScissorsRockPaper.Result.LOSE;
+import static game.ScissorsRockPaper.Result.WIN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 class ScissorsRockPaperTest {
 
     private final ScissorsRockPaper game = new ScissorsRockPaper();
 
-    static Stream<Arguments> winningMoves() {
+    static Stream<Arguments> validCombinations() {
         return Stream.of(
-                Arguments.of(ROCK, SCISSORS),
-                Arguments.of(SCISSORS, PAPER),
-                Arguments.of(PAPER, ROCK)
-        );
-    }
-
-    static Stream<Arguments> losingMoves() {
-        return Stream.of(
-                Arguments.of(SCISSORS, ROCK),
-                Arguments.of(PAPER, SCISSORS),
-                Arguments.of(ROCK, PAPER)
-        );
-    }
-
-    static Stream<Arguments> drawMoves() {
-        return Stream.of(
-                Arguments.of(ROCK, ROCK),
-                Arguments.of(PAPER, PAPER),
-                Arguments.of(SCISSORS, SCISSORS)
-        );
-    }
-
-    static Stream<Arguments> validMovesForSimulation() {
-        return Stream.of(
-                Arguments.of(ROCK),
-                Arguments.of(PAPER),
-                Arguments.of(SCISSORS)
+                Arguments.of(ROCK, ROCK, DRAW),
+                Arguments.of(PAPER, PAPER, DRAW),
+                Arguments.of(SCISSORS, SCISSORS, DRAW),
+                Arguments.of(ROCK, SCISSORS, WIN),
+                Arguments.of(SCISSORS, PAPER, WIN),
+                Arguments.of(PAPER, ROCK, WIN),
+                Arguments.of(SCISSORS, ROCK, LOSE),
+                Arguments.of(PAPER, SCISSORS, LOSE),
+                Arguments.of(ROCK, PAPER, LOSE)
         );
     }
 
     @ParameterizedTest
-    @MethodSource("winningMoves")
-    void shouldReturnWinWithValidParameters(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
-        ScissorsRockPaper.Result result = move1.beats(move2);
-        assertThat(result).isEqualTo(Result.WIN);
-    }
+    @MethodSource("validCombinations")
+    void shouldReturnCorrectResultWithValidParameters(Move move1, Move move2, Result expectedResult) {
+        Result result = move1.beats(move2);
 
-    @ParameterizedTest
-    @MethodSource("losingMoves")
-    void shouldReturnLoseWithValidParameters(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
-        ScissorsRockPaper.Result result = move1.beats(move2);
-        assertThat(result).isEqualTo(Result.LOSE);
-    }
-
-    @ParameterizedTest
-    @MethodSource("drawMoves")
-    void shouldReturnDrawWithIdenticalMoves(ScissorsRockPaper.Move move1, ScissorsRockPaper.Move move2) {
-        ScissorsRockPaper.Result result = move1.beats(move2);
-        assertThat(result).isEqualTo(Result.DRAW);
-    }
-
-    @ParameterizedTest
-    @MethodSource("validMovesForSimulation")
-    void shouldReturnCorrectTotalCountWithValidParameters(ScissorsRockPaper.Move move) {
-        int times = 100;
-        ScissorsRockPaper.ResultCount results = game.playMultipleRounds(move, times);
-        assertThat(results.total()).isEqualTo(times);
-    }
-
-    @ParameterizedTest
-    @NullSource
-    void shouldThrowExceptionWithInvalidMoveParameter(ScissorsRockPaper.Move move) {
-        assertThatThrownBy(
-                () -> game.playMultipleRounds(move, 100))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Moves must not be null");
+        assertThat(result).isEqualTo(expectedResult);
     }
 
     @Test
-    void shouldSelectBestMoveForPlayerAWithMovePlayerB() {
-        List<ScissorsRockPaper.Move> playerBMoves = List.of(PAPER, PAPER, PAPER, ROCK, ROCK, SCISSORS);
+    void shouldThrowExceptionWithNullPlayers() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> game.playMultipleRounds(null, new ScissorsRockPaper.PaperPlayer(), 10))
+                .withMessage("Player A or Player B cannot be null");
 
-        var smartPlayerA = new SmartPlayer(playerBMoves);
-
-//        ScissorsRockPaper.Move nextMove = smartPlayerA.nextMove();
-
-//        assertThat(nextMove).isEqualTo(SCISSORS);
-
-
-        // Spieler A nimmt Schere, weil Papier am meisten gewählt wurde
-
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> game.playMultipleRounds(new ScissorsRockPaper.PaperPlayer(), null, 10))
+                .withMessage("Player A or Player B cannot be null");
     }
 
-    private class SmartPlayer {
-        private final List<ScissorsRockPaper.Move> playerBMoves;
+    @Test
+    void shouldThrowExceptionWithInvalidRounds() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> game.playMultipleRounds(new ScissorsRockPaper.PaperPlayer(), new ScissorsRockPaper.PaperPlayer(), 0))
+                .withMessage("Times must be greater than 0");
+    }
 
-        public SmartPlayer(List<ScissorsRockPaper.Move> playerBMoves) {
-            this.playerBMoves = playerBMoves;
-        }
+    @Test
+    void shouldReturnCorrectResultCountWithValidParameters() {
+        ScissorsRockPaper.Player playerA = new ScissorsRockPaper.PaperPlayer();
+        ScissorsRockPaper.Player playerB = new ScissorsRockPaper.PaperPlayer();
 
-        public ScissorsRockPaper.Move nextMove() {
-            Map<ScissorsRockPaper.Move, AtomicInteger> moves = new HashMap<>();
-            for (ScissorsRockPaper.Move move : playerBMoves) {
-                AtomicInteger a = moves.putIfAbsent(move, new AtomicInteger(0));
-                a.incrementAndGet();
-            }
-            return PAPER;
-        }
+        ScissorsRockPaper.ResultCount resultCount = game.playMultipleRounds(playerA, playerB, 100);
+
+        assertThat(resultCount.total()).isEqualTo(100);
+        assertThat(resultCount.draw()).isEqualTo(100);
+        assertThat(resultCount.win()).isZero();
+        assertThat(resultCount.lose()).isZero();
+    }
+
+    @Test
+    void shouldReturnPaperWithValidParameters() {
+        ScissorsRockPaper.PaperPlayer player = new ScissorsRockPaper.PaperPlayer();
+        assertThat(player.nextMove()).isEqualTo(PAPER);
+    }
+
+    @Test
+    void shouldReturnCorrectTotalWithValidParameters() {
+        ScissorsRockPaper.ResultCount resultCount = new ScissorsRockPaper.ResultCount(1, 2, 3);
+        assertThat(resultCount.total()).isEqualTo(6);
     }
 }
