@@ -1,5 +1,6 @@
 package game;
 
+import game.players.FixedPlayer;
 import game.players.Player;
 import game.players.RandomPlayer;
 import game.players.SmartPlayer;
@@ -49,7 +50,7 @@ public class ScissorsRockPaper {
         ScissorsRockPaper game = new ScissorsRockPaper();
 
         Player playerA = new SmartPlayer(recordsPlayerB);
-        Player playerB = new RandomPlayer();
+        Player playerB = new FixedPlayer(HandSign.ROCK);
         ResultCount resultCount = game.playMultipleRounds(playerA, playerB, 100);
 
         System.out.println("Rounds played: " + resultCount.total());

@@ -5,6 +5,10 @@ import game.HandSign;
 import java.util.Map;
 import java.util.Optional;
 
+import static game.HandSign.PAPER;
+import static game.HandSign.ROCK;
+import static game.HandSign.SCISSORS;
+
 /*
  * Find the best move based on records of player B or, if not given, return a random move.
  */
@@ -20,14 +24,19 @@ public class SmartPlayer extends RandomPlayer implements Player {
 
     @Override
     public HandSign nextMove() {
-        return mostFrequentHandSign(recordsPlayerB).orElse(super.nextMove());
+        return switch (mostFrequentHandSign(recordsPlayerB)) {
+            case ROCK -> PAPER;
+            case PAPER -> SCISSORS;
+            case SCISSORS -> ROCK;
+        };
     }
 
-    private Optional<HandSign> mostFrequentHandSign(Map<HandSign, Integer> recordsPlayerB) {
+    private HandSign mostFrequentHandSign(Map<HandSign, Integer> recordsPlayerB) {
         return recordsPlayerB
                 .entrySet()
                 .stream()
                 .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey);
+                .map(Map.Entry::getKey)
+                .orElse(super.nextMove());
     }
 }
