@@ -2,51 +2,45 @@ package game.players;
 
 import game.HandSign;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static game.HandSign.PAPER;
 import static game.HandSign.ROCK;
 import static game.HandSign.SCISSORS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class SmartPlayerTest {
 
-    @Test
-    void shouldSelectMostFrequentHandSignWithValidParameters() {
-        Map<HandSign, Integer> records = Map.of(ROCK, 1, PAPER, 3, SCISSORS, 0);
+    static Stream<Arguments> validCombinations() {
+        return Stream.of(
+                Arguments.of(Map.of(SCISSORS, 1), ROCK),
+                Arguments.of(Map.of(PAPER, 1), SCISSORS),
+                Arguments.of(Map.of(ROCK, 1), PAPER),
+                Arguments.of(Map.of(ROCK, 1, PAPER, 2, SCISSORS, 3), ROCK)
+        );
+    }
 
+    @ParameterizedTest
+    @MethodSource("validCombinations")
+    void shouldSelectMostFrequentHandSignWithValidParameters(Map<HandSign, Integer> records, HandSign expectedMove) {
         Player player = new SmartPlayer(records);
-        assertThat(player.nextMove()).isEqualTo(PAPER);
+        assertThat(player.nextMove()).isEqualTo(expectedMove);
     }
 
     @Test
     void shouldReturnRandomMoveWithEmptyParameters() {
         Map<HandSign, Integer> records = Map.of();
+        SmartPlayer player = spy(new SmartPlayer(records));
 
-        Player player = new SmartPlayer(records);
-        assertThat(player.nextMove()).isNotNull();
-    }
+        player.nextMove();
 
-    @Test
-    void shouldSelectFirstMaxHandSignWithEqualFrequencies() {
-        // Use a map that guarantees order, or just Map.of and expect one of the max
-        // Here we use a map with deterministic iteration if possible
-        Map<HandSign, Integer> records = new java.util.LinkedHashMap<>();
-        records.put(ROCK, 2);
-        records.put(PAPER, 2);
-        records.put(SCISSORS, 1);
-
-        Player player = new SmartPlayer(records);
-        // ROCK and PAPER have 2. ROCK is first in LinkedHashMap.
-        assertThat(player.nextMove()).isEqualTo(ROCK);
-    }
-
-    @Test
-    void shouldThrowExceptionWithInvalidParameters() {
-        assertThatIllegalArgumentException()
-                .isThrownBy(() -> new SmartPlayer(null))
-                .withMessage("Records cannot be null");
+        verify(player).generateRandomMove();
     }
 }

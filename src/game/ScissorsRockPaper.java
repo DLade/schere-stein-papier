@@ -2,7 +2,6 @@ package game;
 
 import game.players.FixedPlayer;
 import game.players.Player;
-import game.players.RandomPlayer;
 import game.players.SmartPlayer;
 
 import java.util.EnumMap;

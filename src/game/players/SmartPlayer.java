@@ -3,7 +3,6 @@ package game.players;
 import game.HandSign;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static game.HandSign.PAPER;
 import static game.HandSign.ROCK;
@@ -24,7 +23,7 @@ public class SmartPlayer extends RandomPlayer implements Player {
 
     @Override
     public HandSign nextMove() {
-        return switch (mostFrequentHandSign(recordsPlayerB)) {
+        return recordsPlayerB.isEmpty() ? generateRandomMove() : switch (mostFrequentHandSign(recordsPlayerB)) {
             case ROCK -> PAPER;
             case PAPER -> SCISSORS;
             case SCISSORS -> ROCK;
@@ -37,6 +36,6 @@ public class SmartPlayer extends RandomPlayer implements Player {
                 .stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .orElse(super.nextMove());
+                .orElseThrow();
     }
 }
